@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creative Type Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --text: #111111;
+      --muted: #666666;
+      --border: #e8e8e8;
+      --accent: #000000;
+      --shadow: rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      padding: 32px;
+    }
+
+    .stage {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      gap: 32px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 4vw, 3.4rem);
+      letter-spacing: -0.05em;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .layout {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    }
+
+    .panel,
+    .canvas-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 24px 60px var(--shadow);
+    }
+
+    .panel h2,
+    .canvas-panel h2 {
+      margin: 0 0 18px;
+      font-size: 1.2rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .field {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .field input[type="range"] {
+      accent-color: var(--accent);
+      padding: 0;
+    }
+
+    .field input[type="text"] {
+      min-height: 56px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .small-row {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .small-row .field {
+      margin-bottom: 0;
+    }
+
+    .controls-footer {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .button,
+    .toggle {
+      border: 1px solid var(--text);
+      background: transparent;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .button:hover,
+    .toggle:hover {
+      background: var(--text);
+      color: #fff;
+    }
+
+    .info {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-top: 24px;
+    }
+
+    .canvas-frame {
+      position: relative;
+      width: 100%;
+      min-height: 680px;
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      background: #f7f7f7;
+      box-shadow: inset 0 0 0 1px #ebebeb;
+    }
+
+    .status-line {
+      margin-top: 18px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <header>
+      <div>
+        <h1>Creative Type Lab</h1>
+        <p>为设计师、摄影师和艺术学生打造的纯前端文本排版工具。使用 Canvas 生成圆形、波浪、螺旋文字，并支持实时动画与参数调节。</p>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>参数控制面板</h2>
+        <div class="field">
+          <label for="textInput">文字内容</label>
+          <input id="textInput" type="text" value="CREATIVE TOOL" placeholder="输入文字内容" />
+        </div>
+
+        <div class="field">
+          <label for="modeSelect">排版模式</label>
+          <select id="modeSelect">
+            <option value="circle">圆形排版</option>
+            <option value="wave">波浪排版</option>
+            <option value="spiral">螺旋排版</option>
+            <option value="cylinder3d">3D 圆柱体</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="fontFamilySelect">字体选择</label>
+          <select id="fontFamilySelect">
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+          </select>
+        </div>
+
+        <div class="small-row">
+          <div class="field">
+            <label for="fontSizeInput">字体大小</label>
+            <input id="fontSizeInput" type="range" min="24" max="140" value="72" />
+            <span id="fontSizeValue">72</span> px
+          </div>
+          <div class="field">
+            <label for="radiusInput">圆形半径</label>
+            <input id="radiusInput" type="range" min="80" max="320" value="220" />
+            <span id="radiusValue">220</span> px
+          </div>
+        </div>
+
+        <div class="small-row">
+          <div class="field">
+            <label for="letterSpacingInput">字间距</label>
+            <input id="letterSpacingInput" type="range" min="-0.4" max="1.2" step="0.05" value="0.1" />
+            <span id="letterSpacingValue">0.10</span>
+          </div>
+          <div class="field">
+            <label for="speedInput">自动旋转速度</label>
+            <input id="speedInput" type="range" min="0" max="3" step="0.1" value="0.1" />
+            <span id="speedValue">0.10</span>
+          </div>
+        </div>
+
+        <div class="small-row">
+          <div class="field">
+            <label for="amplitudeInput">波浪振幅</label>
+            <input id="amplitudeInput" type="range" min="12" max="140" value="62" />
+            <span id="amplitudeValue">62</span> px
+          </div>
+          <div class="field">
+            <label for="frequencyInput">波浪频率</label>
+            <input id="frequencyInput" type="range" min="0.6" max="4.0" step="0.1" value="1.8" />
+            <span id="frequencyValue">1.80</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pitchInput">螺距</label>
+          <input id="pitchInput" type="range" min="6" max="28" value="14" />
+          <span id="pitchValue">14</span> px
+        </div>
+
+        <div class="small-row">
+          <div class="field">
+            <label for="layersInput">3D 层数</label>
+            <input id="layersInput" type="range" min="3" max="20" value="8" />
+            <span id="layersValue">8</span>
+          </div>
+          <div class="field">
+            <label for="depthInput">3D 深度</label>
+            <input id="depthInput" type="range" min="60" max="240" value="140" />
+            <span id="depthValue">140</span> px
+          </div>
+        </div>
+
+        <div class="small-row">
+          <div class="field">
+            <label for="rotXInput">3D X旋转</label>
+            <input id="rotXInput" type="range" min="-1.57" max="1.57" step="0.1" value="0.3" />
+            <span id="rotXValue">0.30</span>
+          </div>
+          <div class="field">
+            <label for="rotYInput">3D Y旋转</label>
+            <input id="rotYInput" type="range" min="-1.57" max="1.57" step="0.1" value="0" />
+            <span id="rotYValue">0.00</span>
+          </div>
+        </div>
+
+        <div class="controls-footer">
+          <button class="button" id="resetButton">重置参数</button>
+          <button class="button" id="downloadButton">下载 PNG</button>
+          <button class="toggle" id="animationToggle">暂停动画</button>
+        </div>
+
+        <p class="status-line">实时更新：调整滑块即可同步修改 canvas 内容。自动旋转使用 requestAnimationFrame 实现。</p>
+      </aside>
+
+      <section class="canvas-panel">
+        <h2>预览画布</h2>
+        <div class="canvas-frame">
+          <canvas id="previewCanvas"></canvas>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const textInput = document.getElementById('textInput');
+    const modeSelect = document.getElementById('modeSelect');
+    const fontSizeInput = document.getElementById('fontSizeInput');
+    const radiusInput = document.getElementById('radiusInput');
+    const letterSpacingInput = document.getElementById('letterSpacingInput');
+    const speedInput = document.getElementById('speedInput');
+    const amplitudeInput = document.getElementById('amplitudeInput');
+    const frequencyInput = document.getElementById('frequencyInput');
+    const pitchInput = document.getElementById('pitchInput');
+    const fontFamilySelect = document.getElementById('fontFamilySelect');
+    const resetButton = document.getElementById('resetButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const animationToggle = document.getElementById('animationToggle');
+
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    const radiusValue = document.getElementById('radiusValue');
+    const letterSpacingValue = document.getElementById('letterSpacingValue');
+    const speedValue = document.getElementById('speedValue');
+    const amplitudeValue = document.getElementById('amplitudeValue');
+    const frequencyValue = document.getElementById('frequencyValue');
+    const pitchValue = document.getElementById('pitchValue');
+    const layersInput = document.getElementById('layersInput');
+    const depthInput = document.getElementById('depthInput');
+    const rotXInput = document.getElementById('rotXInput');
+    const rotYInput = document.getElementById('rotYInput');
+    const layersValue = document.getElementById('layersValue');
+    const depthValue = document.getElementById('depthValue');
+    const rotXValue = document.getElementById('rotXValue');
+    const rotYValue = document.getElementById('rotYValue');
+
+    const state = {
+      text: textInput.value,
+      mode: modeSelect.value,
+      fontFamily: fontFamilySelect.value,
+      fontSize: Number(fontSizeInput.value),
+      radius: Number(radiusInput.value),
+      letterSpacing: Number(letterSpacingInput.value),
+      speed: Number(speedInput.value),
+      amplitude: Number(amplitudeInput.value),
+      frequency: Number(frequencyInput.value),
+      pitch: Number(pitchInput.value),
+      layers: Number(layersInput.value),
+      depth: Number(depthInput.value),
+      rotX: Number(rotXInput.value),
+      rotY: Number(rotYInput.value),
+      rotation: 0,
+      animating: true,
+      // 3D 朷碩互动
+      mouseX: 0,
+      mouseY: 0,
+      isDragging: false,
+      angleX: 0.3,
+      angleY: 0,
+      fov: 500,
+    };
+
+    function setCanvasSize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+      drawScene();
+    }
+
+    // 3D 投影与变换函数
+    function rotateX(point, angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      return {
+        x: point.x,
+        y: point.y * cos - point.z * sin,
+        z: point.y * sin + point.z * cos,
+      };
+    }
+
+    function rotateY(point, angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      return {
+        x: point.x * cos + point.z * sin,
+        y: point.y,
+        z: -point.x * sin + point.z * cos,
+      };
+    }
+
+    function rotateZ(point, angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      return {
+        x: point.x * cos - point.y * sin,
+        y: point.x * sin + point.y * cos,
+        z: point.z,
+      };
+    }
+
+    function project3D(point) {
+      let p = { ...point };
+      p = rotateX(p, state.angleX);
+      p = rotateY(p, state.angleY);
+      
+      const scale = state.fov / (state.fov + p.z);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      
+      return {
+        x: width / 2 + p.x * scale,
+        y: height / 2 + p.y * scale,
+        z: p.z,
+        scale: scale,
+      };
+    }
+
+    function drawAxes() {
+      const axisLength = 200;
+      const origin = project3D({ x: 0, y: 0, z: 0 });
+      const axisX = project3D({ x: axisLength, y: 0, z: 0 });
+      const axisY = project3D({ x: 0, y: axisLength, z: 0 });
+      const axisZ = project3D({ x: 0, y: 0, z: axisLength });
+
+      ctx.lineWidth = 2;
+      ctx.font = '14px Arial';
+
+      // X 轴（红色）
+      ctx.strokeStyle = '#ff4444';
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(axisX.x, axisX.y);
+      ctx.stroke();
+      ctx.fillStyle = '#ff4444';
+      ctx.fillText('X', axisX.x + 10, axisX.y);
+
+      // Y 轴（绿色）
+      ctx.strokeStyle = '#44ff44';
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(axisY.x, axisY.y);
+      ctx.stroke();
+      ctx.fillStyle = '#44ff44';
+      ctx.fillText('Y', axisY.x, axisY.y - 10);
+
+      // Z 轴（蓝色）
+      ctx.strokeStyle = '#4444ff';
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(axisZ.x, axisZ.y);
+      ctx.stroke();
+      ctx.fillStyle = '#4444ff';
+      ctx.fillText('Z', axisZ.x + 10, axisZ.y + 10);
+    }
+
+    function drawChar3D(char, x, y, z, fontSize, fontFamily) {
+      const point = project3D({ x, y, z });
+      ctx.save();
+      ctx.globalAlpha = Math.max(0.3, 1 - Math.abs(z) / 400);
+      ctx.font = `${fontSize * point.scale}px ${fontFamily}`;
+      ctx.fillStyle = '#111111';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(char, point.x, point.y);
+      ctx.restore();
+    }
+
+    function drawScene() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = '#111111';
+      ctx.font = `${state.fontSize}px ${state.fontFamily}`;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const text = state.text.trim() || 'CREATIVE TOOL';
+      const letters = Array.from(text);
+
+      if (state.mode === 'circle') {
+        const radius = Math.min(state.radius, 150);
+        const angleStep = (Math.PI * 2) / Math.max(letters.length, 1);
+        let angle = state.rotation;
+        const spacing = 1 + state.letterSpacing;
+
+        letters.forEach((char) => {
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          const z = 0;
+          drawChar3D(char, x, y, z, state.fontSize, state.fontFamily);
+          angle += angleStep * spacing;
+        });
+      }
+
+      if (state.mode === 'wave') {
+        const frequency = state.frequency;
+        const amplitude = state.amplitude / 40;
+
+        letters.forEach((char, index) => {
+          const progress = (index / Math.max(letters.length, 1)) * Math.PI * 2 * frequency + state.rotation;
+          const x = (index - letters.length / 2) * 20;
+          const y = Math.sin(progress) * amplitude * 100;
+          const z = Math.cos(progress) * amplitude * 80;
+          drawChar3D(char, x, y, z, state.fontSize, state.fontFamily);
+        });
+      }
+
+      if (state.mode === 'spiral') {
+        const maxRadius = 150;
+
+        letters.forEach((char, index) => {
+          const angle = state.rotation + index * 0.45;
+          const radius = Math.min(index * (state.pitch / 10), maxRadius);
+          const z = (index - letters.length / 2) * (state.pitch / 5);
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          drawChar3D(char, x, y, z, state.fontSize, state.fontFamily);
+        });
+      }
+
+      if (state.mode === 'cylinder3d') {
+        const baseRadius = Math.min(state.radius / 2, 120);
+        const angleStep = (Math.PI * 2) / Math.max(letters.length, 1);
+        const layerCount = state.layers;
+        const depthStep = state.depth / layerCount;
+
+        for (let layer = 0; layer < layerCount; layer++) {
+          const z = (layer - layerCount / 2) * (depthStep / 40);
+          const scale = Math.max(0.4, 1 - Math.abs(z) / (state.depth / 20) * 0.6);
+          const layerRadius = baseRadius * scale;
+          const layerFontSize = state.fontSize * scale;
+
+          let angle = state.rotation;
+          const spacing = 1 + state.letterSpacing;
+
+          letters.forEach((char) => {
+            const x = Math.cos(angle) * layerRadius;
+            const y = Math.sin(angle) * layerRadius;
+            drawChar3D(char, x, y, z, layerFontSize, state.fontFamily);
+            angle += angleStep * spacing;
+          });
+        }
+      }
+    }
+
+    function updateLabels() {
+      fontSizeValue.textContent = state.fontSize;
+      radiusValue.textContent = state.radius;
+      letterSpacingValue.textContent = state.letterSpacing.toFixed(2);
+      speedValue.textContent = state.speed.toFixed(2);
+      amplitudeValue.textContent = state.amplitude;
+      frequencyValue.textContent = state.frequency.toFixed(2);
+      pitchValue.textContent = state.pitch;
+      layersValue.textContent = state.layers;
+      depthValue.textContent = state.depth;
+      rotXValue.textContent = state.angleX.toFixed(2);
+      rotYValue.textContent = state.angleY.toFixed(2);
+    }
+
+    function updateState() {
+      state.text = textInput.value;
+      state.mode = modeSelect.value;
+      state.fontFamily = fontFamilySelect.value;
+      state.fontSize = Number(fontSizeInput.value);
+      state.radius = Number(radiusInput.value);
+      state.letterSpacing = Number(letterSpacingInput.value);
+      state.speed = Number(speedInput.value);
+      state.amplitude = Number(amplitudeInput.value);
+      state.frequency = Number(frequencyInput.value);
+      state.pitch = Number(pitchInput.value);
+      state.layers = Number(layersInput.value);
+      state.depth = Number(depthInput.value);
+      // 不覆盖 angleX 和 angleY（由鼠标控制）
+      updateLabels();
+      drawScene();
+    }
+
+    function animate() {
+      if (state.animating) {
+        state.rotation += state.speed * 0.015;
+      }
+      updateLabels();
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    function resetDefaults() {
+      textInput.value = 'CREATIVE TOOL';
+      modeSelect.value = 'circle';
+      fontFamilySelect.value = 'Arial';
+      fontSizeInput.value = 72;
+      radiusInput.value = 220;
+      letterSpacingInput.value = 0.1;
+      speedInput.value = 0.1;
+      amplitudeInput.value = 62;
+      frequencyInput.value = 1.8;
+      pitchInput.value = 14;
+      layersInput.value = 8;
+      depthInput.value = 140;
+      // 重置 3D 视角
+      state.angleX = 0.3;
+      state.angleY = 0;
+      state.animating = true;
+      animationToggle.textContent = '暂停动画';
+      updateState();
+    }
+
+    function downloadPNG() {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'space-type.png';
+      link.click();
+    }
+
+    function handleRange(input, label) {
+      input.addEventListener('input', () => {
+        updateState();
+      });
+    }
+
+    window.addEventListener('resize', setCanvasSize);
+
+    // 鼠标事件处理 - 3D 旋转
+    canvas.addEventListener('mousedown', (e) => {
+      state.isDragging = true;
+      state.mouseX = e.clientX;
+      state.mouseY = e.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (state.isDragging) {
+        const deltaX = e.clientX - state.mouseX;
+        const deltaY = e.clientY - state.mouseY;
+        state.angleY += deltaX * 0.01;
+        state.angleX += deltaY * 0.01;
+        state.mouseX = e.clientX;
+        state.mouseY = e.clientY;
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      state.isDragging = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      state.isDragging = false;
+    });
+
+    [textInput, modeSelect, fontFamilySelect, fontSizeInput, radiusInput, letterSpacingInput, speedInput, amplitudeInput, frequencyInput, pitchInput, layersInput, depthInput].forEach((element) => {
+      element.addEventListener('input', updateState);
+    });
+
+    // 滑块直接控制 3D 旋转
+    rotXInput.addEventListener('input', () => {
+      state.angleX = Number(rotXInput.value);
+      updateLabels();
+      drawScene();
+    });
+
+    rotYInput.addEventListener('input', () => {
+      state.angleY = Number(rotYInput.value);
+      updateLabels();
+      drawScene();
+    });
+
+    animationToggle.addEventListener('click', () => {
+      state.animating = !state.animating;
+      animationToggle.textContent = state.animating ? '暂停动画' : '启用动画';
+    });
+
+    downloadButton.addEventListener('click', downloadPNG);
+    resetButton.addEventListener('click', resetDefaults);
+
+    setCanvasSize();
+    updateLabels();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
