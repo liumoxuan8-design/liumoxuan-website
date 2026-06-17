@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Creative Type Lab</title>
+  <title>lmx</title>
   <style>
     :root {
       color-scheme: light;
@@ -18,6 +18,14 @@
 
     * {
       box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .field:has(+ .field #cameraZoomInput) {
+      display: none !important;
     }
 
     html, body {
@@ -72,7 +80,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 28px;
+      padding: 24px;
       box-shadow: 0 24px 60px var(--shadow);
     }
 
@@ -87,7 +95,7 @@
     .field {
       display: grid;
       gap: 10px;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
     }
 
     .field:last-child {
@@ -115,6 +123,13 @@
       padding: 0;
     }
 
+    .field input[type="checkbox"] {
+      width: auto;
+      margin: 0 6px 0 0;
+      vertical-align: middle;
+      accent-color: var(--accent);
+    }
+
     .field input[type="text"] {
       min-height: 56px;
       font-size: 1.05rem;
@@ -124,7 +139,7 @@
 
     .small-row {
       display: grid;
-      gap: 16px;
+      gap: 10px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -134,10 +149,10 @@
 
     .controls-footer {
       display: flex;
-      gap: 16px;
+      gap: 8px;
       flex-wrap: wrap;
       align-items: center;
-      margin-top: 6px;
+      margin-top: 2px;
     }
 
     .button,
@@ -146,16 +161,120 @@
       background: transparent;
       color: var(--text);
       border-radius: 14px;
-      padding: 14px 20px;
+      padding: 10px 14px;
       font-size: 0.95rem;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
     }
 
     .button:hover,
     .toggle:hover {
       background: var(--text);
       color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .button:active,
+    .toggle:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.10);
+    }
+
+    .button:focus-visible,
+    .toggle:focus-visible {
+      outline: none;
+      border-color: #111;
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
+    }
+
+    .toggle.is-paused {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    body.theme-dark {
+      color-scheme: dark;
+      --bg: #000000;
+      --surface: #000000;
+      --text: #ffffff;
+      --muted: #cfcfcf;
+      --border: #3a3a3a;
+      --accent: #ffffff;
+      background: #000;
+    }
+
+    body.theme-dark .panel {
+      background: rgba(0, 0, 0, 0.92);
+      border-color: #4a4a4a;
+      color: #fff;
+    }
+
+    body.theme-dark .canvas-panel {
+      background: #000;
+    }
+
+    body.theme-dark canvas {
+      background: #000;
+      box-shadow: none;
+    }
+
+    body.theme-dark header h1 {
+      background: #fff;
+      color: #000;
+    }
+
+    body.theme-dark .field label,
+    body.theme-dark .field span,
+    body.theme-dark header p {
+      color: #cfcfcf;
+    }
+
+    body.theme-dark .field input,
+    body.theme-dark .field select,
+    body.theme-dark #modeSelect,
+    body.theme-dark .button,
+    body.theme-dark .toggle,
+    body.theme-dark .theme-toggle-button {
+      background: #000;
+      border-color: #fff;
+      color: #fff;
+    }
+
+    body.theme-dark .field input[type="range"] {
+      accent-color: #fff;
+    }
+
+    body.theme-dark .field input[type="checkbox"] {
+      accent-color: #000;
+    }
+
+    body.theme-dark .button:hover,
+    body.theme-dark .toggle:hover,
+    body.theme-dark .theme-toggle-button:hover,
+    body.theme-dark .toggle.is-paused {
+      background: #000;
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .theme-toggle-button {
+      position: fixed;
+      right: 28px;
+      bottom: 22px;
+      z-index: 8;
+      width: 168px;
+      height: 24px;
+      padding: 2px 6px;
+      border: 1px solid #777;
+      border-radius: 2px;
+      background: #efefef;
+      color: #222;
+      font: 14px "Courier New", Consolas, monospace;
+      cursor: pointer;
     }
 
     .info {
@@ -168,7 +287,7 @@
     .canvas-frame {
       position: relative;
       width: 100%;
-      min-height: 680px;
+      min-height: 840px;
       display: grid;
       place-items: center;
     }
@@ -192,187 +311,541 @@
         grid-template-columns: 1fr;
       }
     }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 0;
+      font-family: "Courier New", Consolas, monospace;
+      background: #fff;
+    }
+
+    .stage {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      margin: 0;
+      display: block;
+    }
+
+    header {
+      position: fixed;
+      right: 212px;
+      bottom: 22px;
+      z-index: 4;
+      display: grid;
+      gap: 10px;
+      justify-items: start;
+      color: #111;
+    }
+
+    header h1 {
+      margin: 0;
+      padding: 1px 4px;
+      background: #111;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    header p {
+      max-width: 280px;
+      margin: 0;
+      color: #777;
+      font-size: 11px;
+      line-height: 1.45;
+      letter-spacing: 0;
+    }
+
+    .layout {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .panel {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 5;
+      width: 152px;
+      max-height: calc(100vh - 16px);
+      overflow: auto;
+      padding: 6px 8px;
+      border: 1px solid #9a9a9a;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: none;
+      scrollbar-width: none;
+    }
+
+    .panel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .panel h2,
+    .canvas-panel h2,
+    .status-line {
+      display: none;
+    }
+
+    .field {
+      gap: 2px;
+      margin-bottom: 7px;
+    }
+
+    .field label {
+      color: #a0a0a0;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .small-row {
+      display: block;
+    }
+
+    .small-row .field {
+      margin-bottom: 7px;
+    }
+
+    .field input,
+    .field select {
+      height: 22px;
+      padding: 1px 5px;
+      border: 1px solid #9a9a9a;
+      border-radius: 3px;
+      background: #f7f7f7;
+      color: #111;
+      font: 14px "Courier New", Consolas, monospace;
+    }
+
+    .field input[type="range"] {
+      height: 13px;
+      padding: 0;
+      accent-color: #2f7df6;
+    }
+
+    #textInput {
+      position: fixed;
+      top: 42px;
+      left: 168px;
+      z-index: 6;
+      width: 126px;
+      min-height: 28px;
+      margin: 0;
+      border: 2px solid #555;
+      background: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .field span {
+      display: inline-block;
+      color: #a0a0a0;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .controls-footer {
+      position: fixed;
+      right: 28px;
+      bottom: 72px;
+      z-index: 6;
+      width: 168px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 5px;
+      margin-top: 0;
+    }
+
+    .button,
+    .toggle {
+      width: 100%;
+      height: 24px;
+      padding: 2px 6px;
+      border: 1px solid #777;
+      border-radius: 2px;
+      background: #efefef;
+      color: #222;
+      font: 14px "Courier New", Consolas, monospace;
+      box-shadow: none;
+    }
+
+    .button:hover,
+    .toggle:hover,
+    .toggle.is-paused {
+      background: #111;
+      color: #fff;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .canvas-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    .canvas-frame {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    #modeSelect {
+      position: fixed;
+      top: 14px;
+      right: 24px;
+      z-index: 6;
+      width: 112px;
+      height: 30px;
+      border: 2px solid #222;
+      border-radius: 0;
+      background: #fff;
+      font-size: 16px;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .panel {
+        position: relative;
+        width: auto;
+        max-height: none;
+        margin: 8px;
+      }
+
+      .canvas-panel {
+        position: relative;
+        height: 70vh;
+      }
+
+      .canvas-frame,
+      canvas {
+        width: 100%;
+        height: 70vh;
+        min-height: 70vh;
+      }
+    }
   </style>
 </head>
 <body>
   <main class="stage">
     <header>
       <div>
-        <h1>Creative Type Lab</h1>
-        <p>为设计师、摄影师和艺术学生打造的纯前端文本排版工具。使用 Canvas 生成圆形、波浪、螺旋文字，并支持实时动画与参数调节。</p>
+        <h1>SPACE TYPE GENERATOR</h1>
+        <p>- v.cylinder 1.1<br />kinetic type generator</p>
       </div>
     </header>
 
     <section class="layout">
       <aside class="panel">
         <h2>参数控制面板</h2>
-        <div class="field">
+        <div class="field" id="textContentField">
           <label for="textInput">文字内容</label>
-          <input id="textInput" type="text" value="CREATIVE TOOL" placeholder="输入文字内容" />
+          <input id="textInput" type="text" value="ACHIEVE-WHAT" placeholder="输入文字内容" />
         </div>
 
         <div class="field">
           <label for="modeSelect">排版模式</label>
           <select id="modeSelect">
             <option value="wave">波浪</option>
-            <option value="spiral">螺旋</option>
-            <option value="cylinder3d">圆柱体</option>
+            <option value="cylinder3d" selected>圆柱体</option>
+            <option value="lissajous2d">二维李萨如</option>
+            <option value="torus">Torus</option>
+            <option value="lissajous">三维李萨如</option>
           </select>
         </div>
 
+        <div id="cylinderControls">
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">圆柱体</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="cylinderRadiusInput">圆柱体：半径</label>
+              <input id="cylinderRadiusInput" type="range" min="1000" max="20000" step="100" value="10000" />
+              <span id="cylinderRadiusValue">10000</span> px
+            </div>
+            <div class="field">
+              <label for="cylinderCountInput">圆柱体：数量</label>
+              <input id="cylinderCountInput" type="range" min="1" max="20" value="8" />
+              <span id="cylinderCountValue">8</span>
+            </div>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="cylinderRotateInput">圆柱体：旋转</label>
+              <input id="cylinderRotateInput" type="range" min="0" max="3" step="0.05" value="0" />
+              <span id="cylinderRotateValue">0.00</span>
+            </div>
+            <div class="field">
+              <label for="cylinderOffsetInput">圆柱体：偏移</label>
+              <input id="cylinderOffsetInput" type="range" min="0" max="220" value="0" />
+              <span id="cylinderOffsetValue">0</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>
+              <input id="cylinderBreathingInput" type="checkbox" />
+              呼吸圆柱
+            </label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="breathingAmountInput">Breathing Amount</label>
+              <input id="breathingAmountInput" type="range" min="0" max="180" value="40" />
+              <span id="breathingAmountValue">40</span>
+            </div>
+            <div class="field">
+              <label for="breathingSpeedInput">Breathing Speed</label>
+              <input id="breathingSpeedInput" type="range" min="0" max="10" step="0.1" value="1.5" />
+              <span id="breathingSpeedValue">1.5</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="torusControls" hidden>
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">Torus</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="torusMajorInput">Torus：大圆</label>
+              <input id="torusMajorInput" type="range" min="80" max="520" value="240" />
+              <span id="torusMajorValue">240</span>
+            </div>
+            <div class="field">
+              <label for="torusMinorInput">Torus：小圆</label>
+              <input id="torusMinorInput" type="range" min="10" max="180" value="70" />
+              <span id="torusMinorValue">70</span>
+            </div>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="torusCountInput">Torus：数量</label>
+              <input id="torusCountInput" type="range" min="1" max="18" value="7" />
+              <span id="torusCountValue">7</span>
+            </div>
+            <div class="field">
+              <label for="torusSpeedInput">Torus：速度</label>
+              <input id="torusSpeedInput" type="range" min="0" max="3" step="0.05" value="0.35" />
+              <span id="torusSpeedValue">0.35</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="torusTubeSpeedInput">Torus：小圈速度</label>
+            <input id="torusTubeSpeedInput" type="range" min="-3" max="3" step="0.05" value="0" />
+            <span id="torusTubeSpeedValue">0</span>
+          </div>
+
+          <div class="field">
+            <label for="torusOffsetInput">Torus：位移</label>
+            <input id="torusOffsetInput" type="range" min="0" max="220" value="0" />
+            <span id="torusOffsetValue">0</span>
+          </div>
+        </div>
+
+        <div id="lissajousControls" hidden>
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">Lissajous</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="lissajousFreqXInput">X 频率</label>
+              <input id="lissajousFreqXInput" type="range" min="0.1" max="12" step="0.1" value="3" />
+              <span id="lissajousFreqXValue">3.0</span>
+            </div>
+            <div class="field">
+              <label for="lissajousFreqYInput">Y 频率</label>
+              <input id="lissajousFreqYInput" type="range" min="0.1" max="12" step="0.1" value="2" />
+              <span id="lissajousFreqYValue">2.0</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="lissajousPhaseInput">相位</label>
+            <input id="lissajousPhaseInput" type="range" min="0" max="360" step="1" value="90" />
+            <span id="lissajousPhaseValue">90°</span>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="lissajousSamplesInput">采样点数量</label>
+              <input id="lissajousSamplesInput" type="range" min="24" max="1000" step="1" value="1000" />
+              <span id="lissajousSamplesValue">1000</span>
+            </div>
+            <div class="field">
+              <label for="lissajousPhaseSpeedInput">相位变化速率</label>
+              <input id="lissajousPhaseSpeedInput" type="range" min="0" max="2" step="0.01" value="0.35" />
+              <span id="lissajousPhaseSpeedValue">0.35</span>
+            </div>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="lissajousSizeInput">大小</label>
+              <input id="lissajousSizeInput" type="range" min="20" max="100" value="70" />
+              <span id="lissajousSizeValue">70%</span>
+            </div>
+            <div class="field">
+              <label for="lissajousSpeedInput">速度</label>
+              <input id="lissajousSpeedInput" type="range" min="0" max="6" step="0.05" value="0.25" />
+              <span id="lissajousSpeedValue">0.25</span>
+            </div>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="lissajousColorInput">图形颜色</label>
+              <input id="lissajousColorInput" type="color" value="#4cc9ff" />
+            </div>
+            <div class="field">
+              <label for="lissajousTrailInput">残影时间</label>
+              <input id="lissajousTrailInput" type="range" min="8" max="120" value="42" />
+              <span id="lissajousTrailValue">42</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>
+              <input id="lissajousAnimateInput" type="checkbox" checked />
+              播放轨迹
+            </label>
+          </div>
+
+          <div class="controls-footer">
+            <button class="button" id="lissajousResetButton" type="button">重置轨迹</button>
+          </div>
+        </div>
+
+        <div id="waveControls" hidden>
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">波浪</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="waveCountInput">波浪：数量</label>
+              <input id="waveCountInput" type="range" min="1" max="10" value="1" />
+              <span id="waveCountValue">1</span>
+            </div>
+            <div class="field">
+              <label for="waveSpeedInput">波浪：速度</label>
+              <input id="waveSpeedInput" type="range" min="0" max="30" value="3" />
+              <span id="waveSpeedValue">3</span>
+            </div>
+          </div>
+
+          <input id="waveLatitudeInput" type="hidden" value="0" />
+          <span id="waveLatitudeValue" hidden>0</span>
+          <input id="waveLongitudeInput" type="hidden" value="0" />
+          <span id="waveLongitudeValue" hidden>0</span>
+
+          <div class="small-row">
+            <input id="waveRippleInput" type="hidden" value="0" />
+            <span id="waveRippleValue" hidden>0</span>
+            <div class="field">
+              <label for="waveScaleXInput">波浪：X轴缩放</label>
+              <input id="waveScaleXInput" type="range" min="0" max="40" value="19" />
+              <span id="waveScaleXValue">19</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="waveScaleYInput">波浪：Y轴缩放</label>
+            <input id="waveScaleYInput" type="range" min="0" max="40" value="0" />
+            <span id="waveScaleYValue">0</span>
+          </div>
+        </div>
+
+        <div id="typeControls">
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">文字</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="typeScaleXInput">文字：X拉伸</label>
+              <input id="typeScaleXInput" type="range" min="-40" max="40" value="0" />
+              <span id="typeScaleXValue">0</span>
+            </div>
+            <div class="field">
+              <label for="typeScaleYInput">文字：Y拉伸</label>
+              <input id="typeScaleYInput" type="range" min="-40" max="40" value="0" />
+              <span id="typeScaleYValue">0</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="textScaleInput">文字：大小</label>
+            <input id="textScaleInput" type="range" min="50" max="200" value="100" />
+            <span id="textScaleValue">100%</span>
+          </div>
+        </div>
+
+        <div id="adjustControls" hidden>
+          <div class="field">
+            <label style="font-weight: 700; color: var(--text);">调整</label>
+          </div>
+
+          <div class="small-row">
+            <div class="field">
+              <label for="rotXInput">调整：X旋转</label>
+              <input id="rotXInput" type="range" min="-1.57" max="1.57" step="0.01" value="0" />
+              <span id="rotXValue">0.00</span>
+            </div>
+            <div class="field">
+              <label for="rotYInput">调整：Y旋转</label>
+              <input id="rotYInput" type="range" min="-3.14" max="3.14" step="0.01" value="0" />
+              <span id="rotYValue">0.00</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="rotZInput">调整：Z旋转</label>
+            <input id="rotZInput" type="range" min="-1.57" max="1.57" step="0.01" value="0" />
+            <span id="rotZValue">0.00</span>
+          </div>
+        </div>
+
         <div class="field">
-          <label style="font-weight: 700; color: var(--text);">圆柱体</label>
+          <label style="font-weight: 700; color: var(--text);">缩放</label>
         </div>
 
-        <div class="small-row">
-          <div class="field">
-            <label for="cylinderRadiusInput">圆柱体：半径</label>
-            <input id="cylinderRadiusInput" type="range" min="80" max="3000" value="220" />
-            <span id="cylinderRadiusValue">220</span> px
-          </div>
-          <div class="field">
-            <label for="cylinderCountInput">圆柱体：数量</label>
-            <input id="cylinderCountInput" type="range" min="1" max="20" value="8" />
-            <span id="cylinderCountValue">8</span>
-          </div>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="cylinderRotateInput">圆柱体：旋转</label>
-            <input id="cylinderRotateInput" type="range" min="0" max="3" step="0.05" value="0.1" />
-            <span id="cylinderRotateValue">0.10</span>
-          </div>
-          <div class="field">
-            <label for="cylinderOffsetInput">圆柱体：偏移</label>
-            <input id="cylinderOffsetInput" type="range" min="0" max="220" value="120" />
-            <span id="cylinderOffsetValue">120</span> px
-          </div>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="cylinderWaveInput">圆柱体：摆动</label>
-            <input id="cylinderWaveInput" type="range" min="0" max="200" value="40" />
-            <span id="cylinderWaveValue">40</span>
-          </div>
-        </div>
-
-        <div class="controls-footer">
-          <button class="button reset-btn">重置参数</button>
-          <button class="button download-btn">下载 PNG</button>
-          <button class="toggle animation-toggle">暂停动画</button>
-        </div>
-
-        <div class="field">
-          <label style="font-weight: 700; color: var(--text);">波浪</label>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="waveCountInput">波浪：数量</label>
-            <input id="waveCountInput" type="range" min="1" max="10" value="3" />
-            <span id="waveCountValue">3</span>
-          </div>
-          <div class="field">
-            <label for="waveSpeedInput">波浪：速度</label>
-            <input id="waveSpeedInput" type="range" min="0" max="200" value="5" />
-            <span id="waveSpeedValue">5</span>
-          </div>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="waveLatitudeInput">波浪：纬度</label>
-            <input id="waveLatitudeInput" type="range" min="-100" max="100" value="21" />
-            <span id="waveLatitudeValue">21</span>
-          </div>
-          <div class="field">
-            <label for="waveLongitudeInput">波浪：经度</label>
-            <input id="waveLongitudeInput" type="range" min="-100" max="100" value="0" />
-            <span id="waveLongitudeValue">0</span>
-          </div>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="waveRippleInput">波浪：涟漪</label>
-            <input id="waveRippleInput" type="range" min="0" max="120" value="54" />
-            <span id="waveRippleValue">54</span>
-          </div>
-          <div class="field">
-            <label for="waveScaleXInput">波浪：X轴缩放</label>
-            <input id="waveScaleXInput" type="range" min="0" max="40" value="19" />
-            <span id="waveScaleXValue">19</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="waveScaleYInput">波浪：Y轴缩放</label>
-          <input id="waveScaleYInput" type="range" min="0" max="40" value="0" />
-          <span id="waveScaleYValue">0</span>
-        </div>
-
-        <div class="controls-footer">
-          <button class="button reset-btn">重置参数</button>
-          <button class="button download-btn">下载 PNG</button>
-          <button class="toggle animation-toggle">暂停动画</button>
-        </div>
-
-        <div class="field">
-          <label style="font-weight: 700; color: var(--text);">文字</label>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="typeScaleXInput">文字：X轴缩放</label>
-            <input id="typeScaleXInput" type="range" min="-40" max="40" value="0" />
-            <span id="typeScaleXValue">0</span>
-          </div>
-          <div class="field">
-            <label for="typeScaleYInput">文字：Y轴缩放</label>
-            <input id="typeScaleYInput" type="range" min="-40" max="40" value="0" />
-            <span id="typeScaleYValue">0</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="fontWeightInput">文字：粗细</label>
-          <input id="fontWeightInput" type="range" min="100" max="900" step="100" value="600" />
-          <span id="fontWeightValue">600</span>
-        </div>
-
-        <div class="field">
-          <label style="font-weight: 700; color: var(--text);">调整</label>
-        </div>
-
-        <div class="small-row">
-          <div class="field">
-            <label for="rotXInput">调整：X旋转</label>
-            <input id="rotXInput" type="range" min="-1.57" max="1.57" step="0.05" value="0.3" />
-            <span id="rotXValue">0.30</span>
-          </div>
-          <div class="field">
-            <label for="rotYInput">调整：Y旋转</label>
-            <input id="rotYInput" type="range" min="-1.57" max="1.57" step="0.05" value="0" />
-            <span id="rotYValue">0.00</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="rotZInput">调整：Z旋转</label>
-          <input id="rotZInput" type="range" min="-1.57" max="1.57" step="0.05" value="0" />
-          <span id="rotZValue">0.00</span>
-        </div>
-
-        <div class="field">
-          <label style="font-weight: 700; color: var(--text);">相机</label>
-        </div>
-
-        <div class="field">
-          <label for="cameraZoomInput">相机：缩放</label>
-          <input id="cameraZoomInput" type="range" min="200" max="1200" value="500" />
-          <span id="cameraZoomValue">500</span>
+        <div class="field" hidden>
+          <label for="cameraZoomInput">图形比例</label>
+          <input id="cameraZoomInput" type="hidden" value="350" />
+          <span id="cameraZoomValue" hidden>70%</span>
         </div>
 
         <div class="controls-footer">
@@ -392,17 +865,38 @@
       </section>
     </section>
   </main>
+  <button class="theme-toggle-button" id="themeToggle" type="button">黑色模式</button>
 
   <script>
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
+    const textContentField = document.getElementById('textContentField');
     const textInput = document.getElementById('textInput');
     const modeSelect = document.getElementById('modeSelect');
     const cylinderRadiusInput = document.getElementById('cylinderRadiusInput');
     const cylinderCountInput = document.getElementById('cylinderCountInput');
     const cylinderRotateInput = document.getElementById('cylinderRotateInput');
     const cylinderOffsetInput = document.getElementById('cylinderOffsetInput');
-    const cylinderWaveInput = document.getElementById('cylinderWaveInput');
+    const cylinderBreathingInput = document.getElementById('cylinderBreathingInput');
+    const breathingAmountInput = document.getElementById('breathingAmountInput');
+    const breathingSpeedInput = document.getElementById('breathingSpeedInput');
+    const torusMajorInput = document.getElementById('torusMajorInput');
+    const torusMinorInput = document.getElementById('torusMinorInput');
+    const torusCountInput = document.getElementById('torusCountInput');
+    const torusSpeedInput = document.getElementById('torusSpeedInput');
+    const torusTubeSpeedInput = document.getElementById('torusTubeSpeedInput');
+    const torusOffsetInput = document.getElementById('torusOffsetInput');
+    const lissajousFreqXInput = document.getElementById('lissajousFreqXInput');
+    const lissajousFreqYInput = document.getElementById('lissajousFreqYInput');
+    const lissajousPhaseInput = document.getElementById('lissajousPhaseInput');
+    const lissajousSamplesInput = document.getElementById('lissajousSamplesInput');
+    const lissajousPhaseSpeedInput = document.getElementById('lissajousPhaseSpeedInput');
+    const lissajousSizeInput = document.getElementById('lissajousSizeInput');
+    const lissajousSpeedInput = document.getElementById('lissajousSpeedInput');
+    const lissajousColorInput = document.getElementById('lissajousColorInput');
+    const lissajousTrailInput = document.getElementById('lissajousTrailInput');
+    const lissajousAnimateInput = document.getElementById('lissajousAnimateInput');
+    const lissajousResetButton = document.getElementById('lissajousResetButton');
     const waveCountInput = document.getElementById('waveCountInput');
     const waveSpeedInput = document.getElementById('waveSpeedInput');
     const waveLatitudeInput = document.getElementById('waveLatitudeInput');
@@ -412,20 +906,49 @@
     const waveScaleYInput = document.getElementById('waveScaleYInput');
     const typeScaleXInput = document.getElementById('typeScaleXInput');
     const typeScaleYInput = document.getElementById('typeScaleYInput');
-    const fontWeightInput = document.getElementById('fontWeightInput');
+    const textScaleInput = document.getElementById('textScaleInput');
     const rotXInput = document.getElementById('rotXInput');
     const rotYInput = document.getElementById('rotYInput');
     const rotZInput = document.getElementById('rotZInput');
     const cameraZoomInput = document.getElementById('cameraZoomInput');
-    const resetButtons = document.querySelectorAll('.reset-btn');
-    const downloadButtons = document.querySelectorAll('.download-btn');
-    const animationToggles = document.querySelectorAll('.animation-toggle');
+    const resetButton = document.getElementById('resetButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const animationToggle = document.getElementById('animationToggle');
+    const themeToggle = document.getElementById('themeToggle');
+    const cylinderControls = document.getElementById('cylinderControls');
+    const torusControls = document.getElementById('torusControls');
+    const lissajousControls = document.getElementById('lissajousControls');
+    const waveControls = document.getElementById('waveControls');
+    const typeControls = document.getElementById('typeControls');
+    const lissajousPointer = {
+      xPanel: null,
+      yPanel: null,
+      curvePanel: null,
+      xDot: null,
+      yDot: null,
+      curveDot: null,
+    };
 
     const cylinderRadiusValue = document.getElementById('cylinderRadiusValue');
     const cylinderCountValue = document.getElementById('cylinderCountValue');
     const cylinderRotateValue = document.getElementById('cylinderRotateValue');
     const cylinderOffsetValue = document.getElementById('cylinderOffsetValue');
-    const cylinderWaveValue = document.getElementById('cylinderWaveValue');
+    const breathingAmountValue = document.getElementById('breathingAmountValue');
+    const breathingSpeedValue = document.getElementById('breathingSpeedValue');
+    const torusMajorValue = document.getElementById('torusMajorValue');
+    const torusMinorValue = document.getElementById('torusMinorValue');
+    const torusCountValue = document.getElementById('torusCountValue');
+    const torusSpeedValue = document.getElementById('torusSpeedValue');
+    const torusTubeSpeedValue = document.getElementById('torusTubeSpeedValue');
+    const torusOffsetValue = document.getElementById('torusOffsetValue');
+    const lissajousFreqXValue = document.getElementById('lissajousFreqXValue');
+    const lissajousFreqYValue = document.getElementById('lissajousFreqYValue');
+    const lissajousPhaseValue = document.getElementById('lissajousPhaseValue');
+    const lissajousSamplesValue = document.getElementById('lissajousSamplesValue');
+    const lissajousPhaseSpeedValue = document.getElementById('lissajousPhaseSpeedValue');
+    const lissajousSizeValue = document.getElementById('lissajousSizeValue');
+    const lissajousSpeedValue = document.getElementById('lissajousSpeedValue');
+    const lissajousTrailValue = document.getElementById('lissajousTrailValue');
     const waveCountValue = document.getElementById('waveCountValue');
     const waveSpeedValue = document.getElementById('waveSpeedValue');
     const waveLatitudeValue = document.getElementById('waveLatitudeValue');
@@ -435,29 +958,118 @@
     const waveScaleYValue = document.getElementById('waveScaleYValue');
     const typeScaleXValue = document.getElementById('typeScaleXValue');
     const typeScaleYValue = document.getElementById('typeScaleYValue');
-    const fontWeightValue = document.getElementById('fontWeightValue');
+    const textScaleValue = document.getElementById('textScaleValue');
     const rotXValue = document.getElementById('rotXValue');
     const rotYValue = document.getElementById('rotYValue');
     const rotZValue = document.getElementById('rotZValue');
     const cameraZoomValue = document.getElementById('cameraZoomValue');
+    const X_ROTATION_BASE = -1.5;
+
+    function isLissajousMode(mode = state.mode) {
+      return mode === 'lissajous' || mode === 'lissajous2d';
+    }
+
+    function isLissajous3D() {
+      return state.mode === 'lissajous';
+    }
+
+    function isLissajous2D() {
+      return state.mode === 'lissajous2d';
+    }
+
+    function setLissajousFrontView() {
+      state.angleX = 0;
+      state.angleY = 0;
+      state.angleZ = 0;
+      rotXInput.value = -X_ROTATION_BASE;
+      rotYInput.value = 0;
+      rotZInput.value = 0;
+    }
+
+    function setCylinderInitialView() {
+      state.angleX = X_ROTATION_BASE;
+      state.angleY = 0;
+      state.angleZ = 0;
+      state.rotation = 0;
+      state.breathingPhase = 0;
+      state.isDragging = false;
+      rotXInput.value = 0;
+      rotYInput.value = 0;
+      rotZInput.value = 0;
+    }
+
+    function hexToRgb(hex) {
+      const value = hex.replace('#', '');
+      const bigint = parseInt(value, 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255,
+      };
+    }
+
+    function mixColor(start, end, amount) {
+      return {
+        r: Math.round(start.r + (end.r - start.r) * amount),
+        g: Math.round(start.g + (end.g - start.g) * amount),
+        b: Math.round(start.b + (end.b - start.b) * amount),
+      };
+    }
+
+    function isDarkTheme() {
+      return document.body.classList.contains('theme-dark');
+    }
+
+    function getThemeColors() {
+      return isDarkTheme()
+        ? { background: '#000000', foreground: '#ffffff' }
+        : { background: '#ffffff', foreground: '#111111' };
+    }
+
+    function setTheme(isDark) {
+      document.body.classList.toggle('theme-dark', isDark);
+      themeToggle.textContent = isDark ? '白色模式' : '黑色模式';
+      drawScene();
+    }
 
     const state = {
       text: textInput.value,
       mode: modeSelect.value,
       fontFamily: 'Arial',
-      fontSize: 72,
+      fontSize: 70,
       letterSpacing: 0.1,
       speed: 0.1,
       amplitude: 62,
       frequency: 1.8,
-      pitch: 14,
       cylinderRadius: Number(cylinderRadiusInput.value),
       cylinderCount: Number(cylinderCountInput.value),
       cylinderRotate: Number(cylinderRotateInput.value),
       cylinderOffset: Number(cylinderOffsetInput.value),
-      cylinderWave: Number(cylinderWaveInput.value),
+      cylinderBreathing: cylinderBreathingInput.checked,
+      breathingAmount: Number(breathingAmountInput.value),
+      breathingSpeed: Number(breathingSpeedInput.value),
+      torusMajor: Number(torusMajorInput.value),
+      torusMinor: Number(torusMinorInput.value),
+      torusCount: Number(torusCountInput.value),
+      torusSpeed: Number(torusSpeedInput.value),
+      torusTubeSpeed: Number(torusTubeSpeedInput.value),
+      torusOffset: Number(torusOffsetInput.value),
+      lissajousFreqX: Number(lissajousFreqXInput.value),
+      lissajousFreqY: Number(lissajousFreqYInput.value),
+      lissajousFreqZ: 1,
+      lissajousPhase: Number(lissajousPhaseInput.value),
+      lissajousSamples: Number(lissajousSamplesInput.value),
+      lissajousPhaseSpeed: Number(lissajousPhaseSpeedInput.value),
+      lissajousSize: Number(lissajousSizeInput.value),
+      lissajousSpeed: Number(lissajousSpeedInput.value),
+      lissajousColor: lissajousColorInput.value,
+      lissajousTrail: Number(lissajousTrailInput.value),
+      lissajousAnimate: lissajousAnimateInput.checked,
+      lissajousTime: 0,
+      lissajousHistory: [],
+      lissajousLastHistoryKey: '',
       waveCount: Number(waveCountInput.value),
-      waveSpeed: 5,
+      waveSpeed: Number(waveSpeedInput.value),
       waveLatitude: Number(waveLatitudeInput.value),
       waveLongitude: Number(waveLongitudeInput.value),
       waveRipple: Number(waveRippleInput.value),
@@ -465,22 +1077,25 @@
       waveScaleY: Number(waveScaleYInput.value),
       typeScaleX: Number(typeScaleXInput.value),
       typeScaleY: Number(typeScaleYInput.value),
-      fontWeight: Number(fontWeightInput.value),
+      textScale: Number(textScaleInput.value) / 100,
       rotX: Number(rotXInput.value),
       rotY: Number(rotYInput.value),
       rotZ: Number(rotZInput.value),
       cameraZoom: Number(cameraZoomInput.value),
-      radius: Number(cylinderRadiusInput.value),
+      scaleFactor: Number(cameraZoomInput.value) / 500,
       rotation: 0,
+      breathingPhase: 0,
+      torusPhase: 0,
+      torusTubePhase: 0,
       wavePhase: 0,
       animating: true,
       mouseX: 0,
       mouseY: 0,
       isDragging: false,
-      angleX: Number(rotXInput.value),
+      isDraggingLissajous: false,
+      angleX: X_ROTATION_BASE + Number(rotXInput.value),
       angleY: Number(rotYInput.value),
       angleZ: Number(rotZInput.value),
-      fov: Number(cameraZoomInput.value),
     };
 
     function setCanvasSize() {
@@ -526,12 +1141,17 @@
     }
 
     function project3D(point) {
-      let p = { ...point };
+      let p = {
+        x: point.x * state.scaleFactor,
+        y: point.y * state.scaleFactor,
+        z: point.z * state.scaleFactor,
+      };
       p = rotateZ(p, state.angleZ);
       p = rotateX(p, state.angleX);
       p = rotateY(p, state.angleY);
       
-      const scale = state.fov / (state.fov + p.z);
+      const fov = 500;
+      const scale = fov / (fov + p.z);
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       
@@ -585,12 +1205,132 @@
       const point = project3D({ x, y, z });
       ctx.save();
       ctx.globalAlpha = Math.max(0.3, 1 - Math.abs(z) / 400);
-      ctx.font = `${fontSize * point.scale}px ${fontFamily}`;
-      ctx.fillStyle = '#111111';
+      ctx.font = `600 ${fontSize * state.textScale * state.scaleFactor * point.scale}px ${fontFamily}`;
+      ctx.fillStyle = getThemeColors().foreground;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.translate(point.x, point.y);
-      ctx.scale(scaleX, scaleY);
+      ctx.transform(scaleX, 0, 0, scaleY, 0, 0);
+      ctx.fillText(char, 0, 0);
+      ctx.restore();
+    }
+
+    function clamp01(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function smoothstep(edge0, edge1, x) {
+      const t = clamp01((x - edge0) / (edge1 - edge0));
+      return t * t * (3 - 2 * t);
+    }
+
+    function drawCylinderChar(char, x, y, z, baseFontSize, fontFamily, depthRange, scaleX = 1, scaleY = 1) {
+      const point = project3D({ x, y, z });
+      const depth = clamp01((depthRange - point.z) / (depthRange * 2));
+      const frontness = smoothstep(0, 1, depth);
+      const fontSize = baseFontSize * (0.58 + frontness * 0.82);
+      const fontWeight = Math.round(180 + frontness * 720);
+      const alpha = 0.18 + frontness * 0.82;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.fillStyle = getThemeColors().foreground;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.translate(point.x, point.y);
+      ctx.transform(scaleX, 0, 0, scaleY, 0, 0);
+      ctx.fillText(char, 0, 0);
+      ctx.restore();
+    }
+
+    function getLissajousGeometry(width, height) {
+      const size = state.lissajousSize / 100;
+      const panel = {
+        x: width * 0.12,
+        y: height * 0.12,
+        w: width * 0.76,
+        h: height * 0.76,
+        cx: width / 2,
+        cy: height / 2,
+      };
+      return {
+        panel,
+        amp: Math.min(panel.w, panel.h) * 0.46 * size / Math.max(state.scaleFactor, 0.1),
+      };
+    }
+
+    function buildLissajousPoints(width, height, phaseDegrees) {
+      const { panel, amp } = getLissajousGeometry(width, height);
+      const phase = phaseDegrees * Math.PI / 180;
+      const totalPoints = Math.max(3, Math.round(state.lissajousSamples));
+      const points = [];
+
+      for (let index = 0; index <= totalPoints; index += 1) {
+        const t = (index / totalPoints) * Math.PI * 2;
+        points.push({
+          x: amp * Math.sin(state.lissajousFreqX * t + phase),
+          y: amp * Math.sin(state.lissajousFreqY * t),
+          z: isLissajous3D() ? amp * Math.sin(state.lissajousFreqZ * t) : 0,
+        });
+      }
+
+      return { panel, amp, points };
+    }
+
+    function projectLissajousPoint(point, panel) {
+      if (isLissajous2D()) {
+        return {
+          x: panel.cx + point.x * state.scaleFactor,
+          y: panel.cy + point.y * state.scaleFactor,
+          z: 0,
+          scale: 1,
+        };
+      }
+
+      return project3D(point);
+    }
+
+    function updateLissajousHistory(width, height) {
+      const roundedPhase = Math.round(state.lissajousPhase * 10) / 10;
+      const key = [
+        state.mode,
+        state.lissajousFreqX.toFixed(1),
+        state.lissajousFreqY.toFixed(1),
+        isLissajous3D() ? state.lissajousFreqZ.toFixed(1) : '2d',
+        roundedPhase.toFixed(1),
+        state.lissajousSize,
+        state.lissajousSamples,
+      ].join('|');
+
+      if (state.lissajousLastHistoryKey === key) return;
+
+      const curve = buildLissajousPoints(width, height, roundedPhase);
+      state.lissajousHistory.push({
+        key,
+        points: curve.points,
+      });
+      state.lissajousLastHistoryKey = key;
+
+      const maxHistory = Math.max(1, state.lissajousTrail);
+      if (state.lissajousHistory.length > maxHistory) {
+        state.lissajousHistory.splice(0, state.lissajousHistory.length - maxHistory);
+      }
+    }
+
+    function drawFlatChar(char, x, y, angle, fontSize, fontFamily, scaleX = 1, scaleY = 1) {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      ctx.save();
+      ctx.globalAlpha = 1;
+      ctx.font = `600 ${fontSize * state.textScale * state.scaleFactor}px ${fontFamily}`;
+      ctx.fillStyle = getThemeColors().foreground;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.translate(width / 2 + x * state.scaleFactor, height / 2 + y * state.scaleFactor);
+      ctx.rotate(angle);
+      ctx.transform(scaleX, 0, 0, scaleY, 0, 0);
       ctx.fillText(char, 0, 0);
       ctx.restore();
     }
@@ -599,80 +1339,183 @@
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#ffffff';
+      const themeColors = getThemeColors();
+      ctx.fillStyle = themeColors.background;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = '#111111';
+      ctx.fillStyle = themeColors.foreground;
       ctx.font = `${state.fontSize}px ${state.fontFamily}`;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      const text = state.text.trim() || 'CREATIVE TOOL';
+      const text = state.text.trim() || 'ACHIEVE-WHAT';
       const letters = Array.from(text);
 
       if (state.mode === 'wave') {
         const count = Math.max(1, state.waveCount);
         const frequency = state.frequency;
         const amplitude = state.amplitude / 40;
-        const phaseOffset = state.waveLongitude * Math.PI / 180;
-        const baseLatitude = state.waveLatitude;
-        const ripple = state.waveRipple / 20;
+        const phaseOffset = 0;
+        const baseLatitude = 0;
         const waveScaleX = 1 + state.waveScaleX / 20;
         const waveScaleY = 1 + state.waveScaleY / 20;
-        const typeScaleX = 1 + state.typeScaleX / 40;
-        const typeScaleY = 1 + state.typeScaleY / 40;
-        const horizontalSpacing = 20 + count * 6;
+        const typeScaleX = Math.max(0.35, 1 + state.typeScaleX / 40);
+        const typeScaleY = Math.max(0.35, 1 + state.typeScaleY / 40);
+        const horizontalSpacing = 18 + count * 5;
 
         for (let waveIndex = 0; waveIndex < count; waveIndex += 1) {
           const waveShift = (waveIndex - (count - 1) / 2) * horizontalSpacing;
           letters.forEach((char, index) => {
+            const center = (letters.length - 1) / 2;
             const progress = (index / Math.max(letters.length, 1)) * Math.PI * 2 * frequency + state.wavePhase + phaseOffset;
-            const x = ((index - letters.length / 2) * 20 * waveScaleX) + waveShift;
-            const y = Math.sin(progress + waveIndex * 0.4) * amplitude * 100 * waveScaleY + baseLatitude + Math.sin(progress * 2) * ripple;
+            const x = ((index - center) * 20 * waveScaleX) + waveShift;
+            const y = Math.sin(progress + waveIndex * 0.4) * amplitude * 100 * waveScaleY + baseLatitude;
             const z = Math.cos(progress + waveIndex * 0.4) * amplitude * 80 + waveIndex * 15;
             drawChar3D(char, x, y, z, state.fontSize, state.fontFamily, typeScaleX, typeScaleY);
           });
         }
       }
 
-      if (state.mode === 'spiral') {
-        const maxRadius = 150;
-        const typeScaleX = 1 + state.typeScaleX / 40;
-        const typeScaleY = 1 + state.typeScaleY / 40;
-
-        letters.forEach((char, index) => {
-          const angle = state.rotation + index * 0.45;
-          const radius = Math.min(index * (state.pitch / 10), maxRadius);
-          const z = (index - letters.length / 2) * (state.pitch / 5);
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius;
-          drawChar3D(char, x, y, z, state.fontSize, state.fontFamily, typeScaleX, typeScaleY);
-        });
-      }
-
       if (state.mode === 'cylinder3d') {
-        const baseRadius = Math.min(state.cylinderRadius / 2, 140);
+        const baseRadius = Math.max(30, state.cylinderRadius / 40);
         const angleStep = (Math.PI * 2) / Math.max(letters.length, 1);
         const layerCount = Math.max(1, state.cylinderCount);
-        const depthStep = state.cylinderOffset + (layerCount - 1) * 8;
-        const typeScaleX = 1 + state.typeScaleX / 40;
-        const typeScaleY = 1 + state.typeScaleY / 40;
+        const layerTwist = (state.cylinderOffset / 220) * Math.PI * 1.35;
+        const baseAngle = Math.PI / 2;
+        const baseFontSize = state.fontSize * state.textScale * state.scaleFactor;
+        const depthStep = Math.max(54, baseFontSize * 1.18);
+        const depthRange = Math.max(160, baseRadius * 1.2 + depthStep * layerCount * 0.45);
+        const typeScaleX = Math.max(0.35, 1 + state.typeScaleX / 40);
+        const typeScaleY = Math.max(0.35, 1 + state.typeScaleY / 40);
 
         for (let layer = 0; layer < layerCount; layer++) {
           const z = (layer - (layerCount - 1) / 2) * depthStep;
-          const scale = Math.max(0.35, 1 - Math.abs(z) / (state.cylinderOffset + layerCount * 30));
-          const layerRadius = baseRadius * scale;
-          const layerFontSize = state.fontSize * scale;
-          const waveY = Math.sin(state.rotation * 2 + layer * 0.3) * state.cylinderWave;
+          const breathRadius = state.cylinderBreathing
+            ? Math.sin(state.breathingPhase + layer) * state.breathingAmount
+            : 0;
+          const layerRadius = Math.max(20, baseRadius + breathRadius);
 
-          let angle = state.rotation + layer * 0.05;
+          let angle = baseAngle + state.rotation + layer * layerTwist;
           letters.forEach((char, index) => {
             const x = Math.cos(angle + index * 0.02) * layerRadius;
-            const y = Math.sin(angle + index * 0.02) * layerRadius + waveY;
-            drawChar3D(char, x, y, z, layerFontSize, state.fontFamily, typeScaleX, typeScaleY);
+            const y = Math.sin(angle + index * 0.02) * layerRadius;
+            drawCylinderChar(char, x, y, z, baseFontSize, state.fontFamily, depthRange, typeScaleX, typeScaleY);
             angle += angleStep;
           });
         }
+      }
+
+      if (state.mode === 'torus') {
+        const majorRadius = state.torusMajor;
+        const minorRadius = state.torusMinor;
+        const tubeCount = Math.max(1, state.torusCount);
+        const baseFontSize = state.fontSize * state.textScale * state.scaleFactor;
+        const depthRange = Math.max(180, (majorRadius + minorRadius) * state.scaleFactor * 1.45);
+        const typeScaleX = Math.max(0.35, 1 + state.typeScaleX / 40);
+        const typeScaleY = Math.max(0.35, 1 + state.typeScaleY / 40);
+        const layerOffset = (state.torusOffset / 220) * Math.PI * 1.35;
+        const points = [];
+
+        for (let tube = 0; tube < tubeCount; tube += 1) {
+          const v = (tube / tubeCount) * Math.PI * 2 + state.torusTubePhase;
+          const tubeRadius = majorRadius + Math.cos(v) * minorRadius;
+          const y = Math.sin(v) * minorRadius;
+
+          letters.forEach((char, index) => {
+            const u = state.torusPhase + (index / Math.max(letters.length, 1)) * Math.PI * 2 + tube * layerOffset;
+            points.push({
+              char,
+              x: Math.cos(u) * tubeRadius,
+              y: Math.sin(u) * tubeRadius,
+              z: y,
+            });
+          });
+        }
+
+        points.sort((a, b) => b.z - a.z);
+        points.forEach((point) => {
+          drawCylinderChar(point.char, point.x, point.y, point.z, baseFontSize, state.fontFamily, depthRange, typeScaleX, typeScaleY);
+        });
+      }
+
+      if (isLissajousMode()) {
+        if (!state.isDraggingLissajous) {
+          updateLissajousHistory(width, height);
+        }
+        const { panel: curvePanel, amp: curveAmp } = getLissajousGeometry(width, height);
+        const currentT = state.lissajousTime % (Math.PI * 2);
+        const phase = state.lissajousPhase * Math.PI / 180;
+        ctx.save();
+        const currentPoint = projectLissajousPoint({
+          x: curveAmp * Math.sin(state.lissajousFreqX * currentT + phase),
+          y: curveAmp * Math.sin(state.lissajousFreqY * currentT),
+          z: isLissajous3D()
+            ? curveAmp * Math.sin(state.lissajousFreqZ * currentT)
+            : ((state.lissajousPhase - 180) / 180) * curveAmp,
+        }, curvePanel);
+        const curveX = currentPoint.x;
+        const curveY = currentPoint.y;
+        lissajousPointer.curvePanel = curvePanel;
+        lissajousPointer.xPanel = null;
+        lissajousPointer.yPanel = null;
+        lissajousPointer.xDot = null;
+        lissajousPointer.yDot = null;
+        lissajousPointer.curveDot = { x: curveX, y: curveY };
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const curvesToDraw = state.isDraggingLissajous
+          ? [buildLissajousPoints(width, height, state.lissajousPhase)]
+          : state.lissajousHistory;
+        const baseColor = hexToRgb(state.lissajousColor);
+        const shadowColor = isLissajous2D() ? { r: 18, g: 28, b: 42 } : { r: 235, g: 235, b: 235 };
+        const drawn2DPoints = new Set();
+
+        curvesToDraw.forEach((curve, index) => {
+          const age = curvesToDraw.length <= 1 ? 1 : index / (curvesToDraw.length - 1);
+          const alpha = isLissajous2D()
+            ? (state.isDraggingLissajous ? 0.95 : 0.03 + age * age * 0.7)
+            : (state.isDraggingLissajous ? 0.9 : 0.04 + age * age * 0.82);
+          const mixedColor = mixColor(shadowColor, baseColor, 0.22 + age * 0.78);
+
+          ctx.strokeStyle = `rgba(${mixedColor.r}, ${mixedColor.g}, ${mixedColor.b}, ${alpha})`;
+          ctx.lineWidth = isLissajous2D()
+            ? Math.max(0.45, (0.5 + age * 0.9) * state.scaleFactor)
+            : Math.max(0.7, (0.8 + age * 1.8) * state.scaleFactor);
+          ctx.shadowBlur = isLissajous2D() ? 16 * age : 0;
+          ctx.shadowColor = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+          const drawConnectedCurve = !isLissajous2D() || state.lissajousSamples >= 1000;
+          if (drawConnectedCurve) {
+            ctx.beginPath();
+            curve.points.forEach((point, pointIndex) => {
+              const projectedPoint = projectLissajousPoint(point, curvePanel);
+              if (pointIndex === 0) {
+                ctx.moveTo(projectedPoint.x, projectedPoint.y);
+              } else {
+                ctx.lineTo(projectedPoint.x, projectedPoint.y);
+              }
+            });
+            ctx.stroke();
+          }
+
+          if (isLissajous2D() && state.lissajousSamples < 1000) {
+            ctx.fillStyle = `rgba(${mixedColor.r}, ${mixedColor.g}, ${mixedColor.b}, ${Math.min(1, alpha + 0.12)})`;
+            const dotRadius = Math.max(0.25, (2.8 - state.lissajousSamples / 420) * state.scaleFactor);
+            curve.points.forEach((point) => {
+              const projectedPoint = projectLissajousPoint(point, curvePanel);
+              const pointKey = `${Math.round(projectedPoint.x * 2)},${Math.round(projectedPoint.y * 2)}`;
+              if (drawn2DPoints.has(pointKey)) return;
+              drawn2DPoints.add(pointKey);
+              ctx.beginPath();
+              ctx.arc(projectedPoint.x, projectedPoint.y, dotRadius, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          }
+          ctx.shadowBlur = 0;
+        });
+
+        ctx.restore();
       }
     }
 
@@ -681,7 +1524,22 @@
       cylinderCountValue.textContent = state.cylinderCount;
       cylinderRotateValue.textContent = state.cylinderRotate.toFixed(2);
       cylinderOffsetValue.textContent = state.cylinderOffset;
-      cylinderWaveValue.textContent = state.cylinderWave;
+      breathingAmountValue.textContent = state.breathingAmount;
+      breathingSpeedValue.textContent = state.breathingSpeed;
+      torusMajorValue.textContent = state.torusMajor;
+      torusMinorValue.textContent = state.torusMinor;
+      torusCountValue.textContent = state.torusCount;
+      torusSpeedValue.textContent = state.torusSpeed.toFixed(2);
+      torusTubeSpeedValue.textContent = state.torusTubeSpeed.toFixed(2);
+      torusOffsetValue.textContent = state.torusOffset;
+      lissajousFreqXValue.textContent = state.lissajousFreqX.toFixed(1);
+      lissajousFreqYValue.textContent = state.lissajousFreqY.toFixed(1);
+      lissajousPhaseValue.textContent = `${Math.round(state.lissajousPhase)}°`;
+      lissajousSamplesValue.textContent = state.lissajousSamples;
+      lissajousPhaseSpeedValue.textContent = state.lissajousPhaseSpeed.toFixed(2);
+      lissajousSizeValue.textContent = `${state.lissajousSize}%`;
+      lissajousSpeedValue.textContent = state.lissajousSpeed.toFixed(2);
+      lissajousTrailValue.textContent = state.lissajousTrail;
       waveCountValue.textContent = state.waveCount;
       waveSpeedValue.textContent = state.waveSpeed;
       waveLatitudeValue.textContent = state.waveLatitude;
@@ -691,21 +1549,56 @@
       waveScaleYValue.textContent = state.waveScaleY;
       typeScaleXValue.textContent = state.typeScaleX;
       typeScaleYValue.textContent = state.typeScaleY;
-      fontWeightValue.textContent = state.fontWeight;
-      rotXValue.textContent = state.angleX.toFixed(2);
+      textScaleValue.textContent = `${Math.round(state.textScale * 100)}%`;
+      rotXValue.textContent = (state.angleX - X_ROTATION_BASE).toFixed(2);
       rotYValue.textContent = state.angleY.toFixed(2);
       rotZValue.textContent = state.angleZ.toFixed(2);
-      cameraZoomValue.textContent = state.cameraZoom;
+      cameraZoomValue.textContent = `${Math.round(state.scaleFactor * 100)}%`;
+    }
+
+    function syncControlVisibility() {
+      cylinderControls.hidden = modeSelect.value !== 'cylinder3d';
+      torusControls.hidden = modeSelect.value !== 'torus';
+      lissajousControls.hidden = !isLissajousMode(modeSelect.value);
+      waveControls.hidden = modeSelect.value !== 'wave';
+      textContentField.hidden = isLissajousMode(modeSelect.value);
+      typeControls.hidden = isLissajousMode(modeSelect.value);
     }
 
     function updateState() {
+      const previousLissajousKey = `${state.mode},${state.lissajousFreqX},${state.lissajousFreqY},${state.lissajousSamples},${isLissajous3D() ? state.lissajousFreqZ : '2d'}`;
+      syncControlVisibility();
       state.text = textInput.value;
       state.mode = modeSelect.value;
       state.cylinderRadius = Number(cylinderRadiusInput.value);
       state.cylinderCount = Number(cylinderCountInput.value);
       state.cylinderRotate = Number(cylinderRotateInput.value);
       state.cylinderOffset = Number(cylinderOffsetInput.value);
-      state.cylinderWave = Number(cylinderWaveInput.value);
+      state.cylinderBreathing = cylinderBreathingInput.checked;
+      state.breathingAmount = Number(breathingAmountInput.value);
+      state.breathingSpeed = Number(breathingSpeedInput.value);
+      state.torusMajor = Number(torusMajorInput.value);
+      state.torusMinor = Number(torusMinorInput.value);
+      state.torusCount = Number(torusCountInput.value);
+      state.torusSpeed = Number(torusSpeedInput.value);
+      state.torusTubeSpeed = Number(torusTubeSpeedInput.value);
+      state.torusOffset = Number(torusOffsetInput.value);
+      state.lissajousFreqX = Number(lissajousFreqXInput.value);
+      state.lissajousFreqY = Number(lissajousFreqYInput.value);
+      state.lissajousPhase = Number(lissajousPhaseInput.value);
+      state.lissajousSamples = Number(lissajousSamplesInput.value);
+      state.lissajousPhaseSpeed = Number(lissajousPhaseSpeedInput.value);
+      state.lissajousSize = Number(lissajousSizeInput.value);
+      state.lissajousSpeed = Number(lissajousSpeedInput.value);
+      state.lissajousColor = lissajousColorInput.value;
+      state.lissajousTrail = Number(lissajousTrailInput.value);
+      state.lissajousAnimate = lissajousAnimateInput.checked;
+      const nextLissajousKey = `${state.mode},${state.lissajousFreqX},${state.lissajousFreqY},${state.lissajousSamples},${isLissajous3D() ? state.lissajousFreqZ : '2d'}`;
+      if (isLissajousMode() && previousLissajousKey !== nextLissajousKey) {
+        state.lissajousTime = 0;
+        state.lissajousHistory = [];
+        state.lissajousLastHistoryKey = '';
+      }
       state.waveCount = Number(waveCountInput.value);
       state.waveSpeed = Number(waveSpeedInput.value);
       state.waveLatitude = Number(waveLatitudeInput.value);
@@ -715,9 +1608,9 @@
       state.waveScaleY = Number(waveScaleYInput.value);
       state.typeScaleX = Number(typeScaleXInput.value);
       state.typeScaleY = Number(typeScaleYInput.value);
-      state.fontWeight = Number(fontWeightInput.value);
+      state.textScale = Number(textScaleInput.value) / 100;
       state.cameraZoom = Number(cameraZoomInput.value);
-      state.fov = state.cameraZoom;
+      state.scaleFactor = state.cameraZoom / 500;
       updateLabels();
       drawScene();
     }
@@ -725,6 +1618,22 @@
     function animate() {
       if (state.animating) {
         state.rotation += state.cylinderRotate * 0.015;
+        state.breathingPhase += state.breathingSpeed * 0.01;
+        state.torusPhase += state.torusSpeed * 0.01;
+        state.torusTubePhase += state.torusTubeSpeed * 0.01;
+        if (isLissajousMode() && state.lissajousAnimate) {
+          if (isLissajous2D()) {
+            state.lissajousPhase = (state.lissajousPhase + state.lissajousSpeed * state.lissajousPhaseSpeed) % 360;
+            lissajousPhaseInput.value = Math.round(state.lissajousPhase);
+          } else {
+            const nextTime = state.lissajousTime + state.lissajousSpeed * 0.006;
+            if (nextTime >= Math.PI * 2) {
+              state.lissajousHistory = [];
+              state.lissajousLastHistoryKey = '';
+            }
+            state.lissajousTime = nextTime % (Math.PI * 2);
+          }
+        }
         state.wavePhase += state.waveSpeed * 0.001;
       }
       updateLabels();
@@ -733,32 +1642,64 @@
     }
 
     function resetDefaults() {
-      textInput.value = 'CREATIVE TOOL';
-      modeSelect.value = 'wave';
-      cylinderRadiusInput.value = 220;
+      const currentMode = modeSelect.value;
+      textInput.value = 'ACHIEVE-WHAT';
+      modeSelect.value = currentMode;
+      cylinderRadiusInput.value = 10000;
       cylinderCountInput.value = 8;
-      cylinderRotateInput.value = 0.1;
-      cylinderOffsetInput.value = 120;
-      cylinderWaveInput.value = 40;
-      waveCountInput.value = 3;
-      waveSpeedInput.value = 5;
-      waveLatitudeInput.value = 21;
+      cylinderRotateInput.value = 0;
+      cylinderOffsetInput.value = 0;
+      cylinderBreathingInput.checked = false;
+      breathingAmountInput.value = 40;
+      breathingSpeedInput.value = 1.5;
+      torusMajorInput.value = 240;
+      torusMinorInput.value = 70;
+      torusCountInput.value = 7;
+      torusSpeedInput.value = 0.35;
+      torusTubeSpeedInput.value = 0;
+      torusOffsetInput.value = 0;
+      lissajousFreqXInput.value = 3;
+      lissajousFreqYInput.value = 2;
+      lissajousPhaseInput.value = 90;
+      lissajousSamplesInput.value = 1000;
+      lissajousPhaseSpeedInput.value = 0.35;
+      lissajousSizeInput.value = 70;
+      lissajousSpeedInput.value = 0.25;
+      lissajousColorInput.value = '#4cc9ff';
+      lissajousTrailInput.value = 42;
+      lissajousAnimateInput.checked = true;
+      waveCountInput.value = 1;
+      waveSpeedInput.value = 3;
+      waveLatitudeInput.value = 0;
       waveLongitudeInput.value = 0;
-      waveRippleInput.value = 54;
+      waveRippleInput.value = 0;
       waveScaleXInput.value = 19;
       waveScaleYInput.value = 0;
       typeScaleXInput.value = 0;
       typeScaleYInput.value = 0;
-      fontWeightInput.value = 600;
-      rotXInput.value = 0.3;
+      textScaleInput.value = 100;
+      rotXInput.value = 0;
       rotYInput.value = 0;
       rotZInput.value = 0;
-      cameraZoomInput.value = 500;
-      state.angleX = 0.3;
+      cameraZoomInput.value = 350;
+      state.scaleFactor = 0.7;
+      state.angleX = X_ROTATION_BASE;
       state.angleY = 0;
       state.angleZ = 0;
+      if (isLissajousMode(currentMode)) {
+        setLissajousFrontView();
+      }
+      state.rotation = 0;
+      state.breathingPhase = 0;
+      state.torusPhase = 0;
+      state.torusTubePhase = 0;
+      state.lissajousTime = 0;
+      state.lissajousHistory = [];
+      state.lissajousLastHistoryKey = '';
       state.animating = true;
       animationToggle.textContent = '暂停动画';
+      animationToggle.classList.remove('is-paused');
+      syncControlVisibility();
       updateState();
     }
 
@@ -778,38 +1719,138 @@
     window.addEventListener('resize', setCanvasSize);
 
     // 鼠标事件处理 - 3D 旋转
+    function getCanvasPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+    }
+
+    function distanceToPoint(point, target) {
+      if (!target) return Infinity;
+      return Math.hypot(point.x - target.x, point.y - target.y);
+    }
+
+    function dragLissajousPoint(point) {
+      const panel = lissajousPointer.curvePanel;
+      if (!panel) return;
+
+      const phase = state.lissajousPhase * Math.PI / 180;
+      const size = state.lissajousSize / 100;
+      const curveAmp = Math.min(panel.w, panel.h) * 0.42 * size;
+      let bestTime = state.lissajousTime;
+      let bestDistance = Infinity;
+
+      const dragSamples = Math.max(180, Math.round(state.lissajousSamples));
+      for (let index = 0; index <= dragSamples; index += 1) {
+        const t = (index / dragSamples) * Math.PI * 2;
+        const projectedPoint = projectLissajousPoint({
+          x: curveAmp * Math.sin(state.lissajousFreqX * t + phase),
+          y: curveAmp * Math.sin(state.lissajousFreqY * t),
+          z: isLissajous3D()
+            ? curveAmp * Math.sin(state.lissajousFreqZ * t)
+            : ((state.lissajousPhase - 180) / 180) * curveAmp,
+        }, panel);
+        const candidateDistance = Math.hypot(point.x - projectedPoint.x, point.y - projectedPoint.y);
+        if (candidateDistance < bestDistance) {
+          bestDistance = candidateDistance;
+          bestTime = t;
+        }
+      }
+
+      state.lissajousTime = bestTime;
+      drawScene();
+    }
+
     canvas.addEventListener('mousedown', (e) => {
+      if (isLissajousMode()) {
+        const point = getCanvasPoint(e);
+        const hitDistance = Math.min(
+          distanceToPoint(point, lissajousPointer.xDot),
+          distanceToPoint(point, lissajousPointer.yDot),
+          distanceToPoint(point, lissajousPointer.curveDot)
+        );
+        if (hitDistance <= 18) {
+          state.isDraggingLissajous = true;
+          lissajousAnimateInput.checked = false;
+          state.lissajousAnimate = false;
+          dragLissajousPoint(point);
+          return;
+        }
+
+        if (isLissajous2D()) {
+          return;
+        }
+
+      }
+
       state.isDragging = true;
       state.mouseX = e.clientX;
       state.mouseY = e.clientY;
     });
 
     canvas.addEventListener('mousemove', (e) => {
+      if (state.isDraggingLissajous) {
+        dragLissajousPoint(getCanvasPoint(e));
+        return;
+      }
+
       if (state.isDragging) {
         const deltaX = e.clientX - state.mouseX;
         const deltaY = e.clientY - state.mouseY;
         state.angleY += deltaX * 0.01;
         state.angleX += deltaY * 0.01;
+        rotXInput.value = Math.max(-1.57, Math.min(1.57, state.angleX - X_ROTATION_BASE));
+        rotYInput.value = Math.max(-3.14, Math.min(3.14, state.angleY));
         state.mouseX = e.clientX;
         state.mouseY = e.clientY;
       }
     });
 
     canvas.addEventListener('mouseup', () => {
+      const wasDraggingLissajous = state.isDraggingLissajous;
       state.isDragging = false;
+      state.isDraggingLissajous = false;
+      if (wasDraggingLissajous) {
+        state.lissajousHistory = [];
+        state.lissajousLastHistoryKey = '';
+        drawScene();
+      }
     });
 
     canvas.addEventListener('mouseleave', () => {
+      const wasDraggingLissajous = state.isDraggingLissajous;
       state.isDragging = false;
+      state.isDraggingLissajous = false;
+      if (wasDraggingLissajous) {
+        state.lissajousHistory = [];
+        state.lissajousLastHistoryKey = '';
+        drawScene();
+      }
     });
 
-    [textInput, modeSelect, cylinderRadiusInput, cylinderCountInput, cylinderRotateInput, cylinderOffsetInput, cylinderWaveInput, waveCountInput, waveSpeedInput, waveLatitudeInput, waveLongitudeInput, waveRippleInput, waveScaleXInput, waveScaleYInput, typeScaleXInput, typeScaleYInput, fontWeightInput, cameraZoomInput].forEach((element) => {
+    modeSelect.addEventListener('input', () => {
+      if (modeSelect.value === 'cylinder3d') {
+        setCylinderInitialView();
+      }
+      if (modeSelect.value === 'torus') {
+        rotXInput.value = 0;
+        state.angleX = X_ROTATION_BASE;
+      }
+      if (isLissajousMode(modeSelect.value)) {
+        setLissajousFrontView();
+      }
+      updateState();
+    });
+
+    [textInput, cylinderRadiusInput, cylinderCountInput, cylinderRotateInput, cylinderOffsetInput, cylinderBreathingInput, breathingAmountInput, breathingSpeedInput, torusMajorInput, torusMinorInput, torusCountInput, torusSpeedInput, torusTubeSpeedInput, torusOffsetInput, lissajousFreqXInput, lissajousFreqYInput, lissajousPhaseInput, lissajousSamplesInput, lissajousPhaseSpeedInput, lissajousSizeInput, lissajousSpeedInput, lissajousColorInput, lissajousTrailInput, lissajousAnimateInput, waveCountInput, waveSpeedInput, waveLatitudeInput, waveLongitudeInput, waveRippleInput, waveScaleXInput, waveScaleYInput, typeScaleXInput, typeScaleYInput, textScaleInput, cameraZoomInput].forEach((element) => {
       element.addEventListener('input', updateState);
     });
 
     // 旋转参数单独处理，以保持鼠标拖动的视角
     rotXInput.addEventListener('input', () => {
-      state.angleX = Number(rotXInput.value);
+      state.angleX = X_ROTATION_BASE + Number(rotXInput.value);
       updateState();
     });
 
@@ -823,18 +1864,26 @@
       updateState();
     });
 
-    resetButtons.forEach(btn => btn.addEventListener('click', resetDefaults));
-    downloadButtons.forEach(btn => btn.addEventListener('click', downloadPNG));
-    animationToggles.forEach(btn => {
-      btn.addEventListener('click', () => {
-        state.animating = !state.animating;
-        animationToggles.forEach(toggle => {
-          toggle.textContent = state.animating ? '暂停动画' : '启用动画';
-        });
-      });
+    resetButton.addEventListener('click', resetDefaults);
+    lissajousResetButton.addEventListener('click', () => {
+      state.lissajousTime = 0;
+      state.lissajousHistory = [];
+      state.lissajousLastHistoryKey = '';
+      drawScene();
+    });
+    downloadButton.addEventListener('click', downloadPNG);
+    animationToggle.addEventListener('click', () => {
+      state.animating = !state.animating;
+      animationToggle.textContent = state.animating ? '暂停动画' : '启用动画';
+      animationToggle.classList.toggle('is-paused', !state.animating);
+    });
+    themeToggle.addEventListener('click', () => {
+      setTheme(!isDarkTheme());
     });
 
     setCanvasSize();
+    setTheme(true);
+    syncControlVisibility();
     updateLabels();
     requestAnimationFrame(animate);
   </script>
